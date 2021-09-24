@@ -161,3 +161,122 @@ t.test(u75 ~ treat, data = nsw)
 
 reg7b <- lm(re78 ~ treat, data = nsw)
 summary(reg7b)  
+
+# A variavel de tratamento é estatisticamente significante e as pessoas 
+# que fizeram tratamento tem 1794 reais a mais no salário do que as 
+# que não fizeram
+
+## C -->  Estimate the average treatment effect of the training program,
+## including pre-treatment covariates as control variables. Did the results change?
+
+reg7c <- lm(re78 ~treat + age + educ + black +hisp +married +
+              re74 + re75 + u74 + u75, data = nsw)
+summary(reg7c)
+
+# As variaveis educ e black são as que mais afetam o salário após tratamento e são
+# as únicas que tem significância estatísta
+
+## D -->  Proceed a balance check on pre-treatment variables and discuss the results.
+
+#rodar teste t para todas as variaveis
+# os dados não-numericos foram tratados no excel
+
+t.test(age ~ treat, data = psid)
+t.test(black ~ treat, data = psid)
+t.test(hispanic ~ treat, data = psid)
+t.test(married ~ treat, data = psid)
+t.test(re74 ~ treat, data = psid)
+t.test(re75 ~ treat, data = psid)
+t.test(u74 ~ treat, data = psid)
+t.test(u75 ~ treat, data = psid)
+
+# A aleatorização foi mal feita para as variáveis idade e cor de pele, pois
+# as médias são bem diferentes entre os grupos de controle e tratado. A variavel
+# hisp não possui resultados estatisticamente signficantes.
+
+## E --> Test whether the average post-treatment earnings difference between treated
+## and control individuals is statistically different from zero. By doing this, are you
+## assessing the average treatment effect? Why?
+
+reg7e <- lm(re78 ~ treat, data=psid)
+summary(reg7e)
+
+# Por conta da aleatorização não foi bem feita, não é possível zerar o
+# viés de seleção. Assim, a diferença entre as médias e o tratamento negativo
+# é possível afirmar que o efeito do tratamento não é significativo
+# Além disso,o balanceamento inadequado pode ter ocultado o efeito do tratamento.
+
+## EXERCÍCIO 8
+
+## A --> Using age, education, RE74 and RE75, construct a propensity score using
+## the treated as the treatment variable. Report the average p-score for the treated
+## and control samples, and plot the propensity score densities for the treatment and
+## control groups.
+
+library(dplyr)
+library(ggplot2)
+
+Dehijia_Wahba <- Dehijia_Wahba[1:1000,]
+
+reg8a <- lm(re78 ~ treat + age + education + re74 + re75, data = Dehijia_Wahba)
+summary(reg8a)
+
+betas <- glm(treat ~ age + education + re74 + re75, family = binomial, data = Dehijia_Wahba)
+
+yestimado <- data.frame(pr_score =predict(betas, type = 'response'),
+                        treat = betas$model$treat)
+
+head(yestimado)
+View(yestimado)
+
+table1::table1(~pr_score| treat, data = yestimado)
+
+yestimado %>%
+  ggplot(aes(x = pr_score)) +
+  geom_histogram(color = 'white') +
+  facet_wrap(~treat)+
+  xlab("Probability of Propensity Score")+
+  theme_bw()
+
+library(MatchIt)
+
+mod_match <- matchit(treat ~ age + education + re74 + re75,
+                     distance = 'glm',
+                     method = 'nearest',
+                     data = Dehijia_Wahba)
+
+mod_match
+summary(mod_match, un = FALSE)
+
+# existem apenas 370 individuos pareados
+# sera criada uma base com apenas individuos pareados
+
+dta_m <- match.data(mod_match)
+dim(dta_m)
+
+plot(mod_match, type = 'hist')
+plot(mod_match, type = 'jitter', interactive = FALSE)
+
+# Como temos muito mais pessoas dentro do grupo de controle do que de tratado, 
+# quando pareamos um para um a probabilidade de usarmos 
+# todos os tratados e descartamos os controles é grande, como mostrado acima, 
+# onde a densidade das unidades tratadas não pareadas é 0, enquanto a densidades 
+# das unidades controle não pareadas é grande.
+
+## B --> Compare this to a linear regression, using age, education, RE74 and RE75
+## as controls. Compare the hypothesis behind each estimators.
+
+# calculo do impacto do tratamento por meio de um MQO
+
+library(lmtest)
+library(sandwich)
+
+reg8b <- lm(re78 ~ treat + age + education + re74 + re75,
+            data = dta_m, weights = weights)
+
+summary(reg8b)
+
+# O tratamento teve um valor de impacto alto, em média, pessoas que foram 
+# tratadas tem 1445 reais a mais em seus salários de que pessoas do grupo de
+# controle, dado tudo mais constante. Além de que os resultados são significantes 
+# ao nível de 0,05.
