@@ -1,10 +1,18 @@
 ## ECONOMETRIA - PROBLEM SET 1
 ## Júlia Papa Gonçalves Mão Cheia (C353125)
 
+
 ## EXERCÍCIO 1
 
 ## C -  estimate the effect of education ("educ") 
 ## on the log of wage ("lwage"). Interpret the result.
+
+library(readxl)
+wage <- read_excel("C:/Users/JúliaGonçalves/Downloads/wage.xlsx", 
+                   col_types = c("numeric", "numeric", "numeric", 
+                                 "numeric", "numeric", "numeric", 
+                                 "numeric", "numeric", "numeric", "numeric", 
+                                 "numeric"))
 
 # Verificação se todas as variáveis são numéricas
 summary(wage)
@@ -138,6 +146,8 @@ summary(reg4f2)
 ## for treatment and control groups and test if the difference in
 ## means between groups is statistically significant).
 
+nsw <- read_excel("C:/Users/JúliaGonçalves/Downloads/nsw.xlsx")
+
 head(nsw)
 summary(nsw)
 
@@ -181,9 +191,16 @@ summary(reg7c)
 #rodar teste t para todas as variaveis
 # os dados não-numericos foram tratados no excel
 
+psid <- read_excel("C:/Users/JúliaGonçalves/Downloads/psid.xlsx", 
+                           col_types = c("numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric"))
+View(psid)
+
 t.test(age ~ treat, data = psid)
 t.test(black ~ treat, data = psid)
-t.test(hispanic ~ treat, data = psid)
+t.test(hisp ~ treat, data = psid)
 t.test(married ~ treat, data = psid)
 t.test(re74 ~ treat, data = psid)
 t.test(re75 ~ treat, data = psid)
@@ -212,6 +229,13 @@ summary(reg7e)
 ## the treated as the treatment variable. Report the average p-score for the treated
 ## and control samples, and plot the propensity score densities for the treatment and
 ## control groups.
+
+Dehijia_Wahba <- read_excel("C:/Users/JúliaGonçalves/Downloads/Dehijia_Wahba.xlsx",
+                            col_types = c("numeric", "numeric", "numeric", 
+                                          "numeric", "numeric", "numeric", 
+                                          "numeric", "numeric", "numeric", 
+                                          "numeric"))
+View(Dehijia_Wahba)
 
 library(dplyr)
 library(ggplot2)
